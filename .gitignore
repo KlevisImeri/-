@@ -1,0 +1,11 @@
+*
+# --- Shell ---
+!.bashrc
+!.bash_profile
+!.bash_logout
+!.git-prompt.sh
+# --- Git ---
+!.gitconfig
+# --- Git internals ---
+!.gitignore
+!.gitattributes
