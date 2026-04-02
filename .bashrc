@@ -24,11 +24,9 @@ if [ -d ~/.bashrc.d ]; then
 fi
 unset rc
 
-
-alias la='ls -a'
-alias ll='ls -alh'
-alias pactl-hdmi='pactl set-card-profile alsa_card.pci-0000_00_1f.3 output:hdmi-stereo && pactl set-sink-port @DEFAULT_SINK@ hdmi-output-0'
-alias sleep='xset dpms force off'
+for d in /opt/*/bin; do
+    PATH="$PATH:$d"
+done
 
 
 . ~/.git-prompt.sh   
@@ -37,12 +35,15 @@ export VISUAL=nvim
 PROMPT_COMMAND='PS1_CMD1=$(__git_ps1 "(%s)")'
 PS1='\[\e[91m\]\u\[\e[93m\]@\[\e[95m\]\A\[\e[0m\]\[\e[96m\]\w\[\e[93m\]${PS1_CMD1}\[\e[97m\]\\$ \[\e[0m\]'
 
-# bun
+export ORACLE_BASE=/usr/lib/oracle
+export ORACLE_HOME=$ORACLE_BASE/23/client64
+export PATH=$ORACLE_HOME/bin:$PATH
+export TNS_ADMIN=$ORACLE_HOME/lib/network/admin
+
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
-
-# opencode
-export PATH=$HOME/.opencode/bin:$PATH
-export PATH=$HOME/go/bin:$PATH
-
-export PATH="$HOME/.local/bin:$PATH"
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export PATH=/home/klevis/.opencode/bin:$PATH
+export PATH=/home/klevis/go/bin:$PATH

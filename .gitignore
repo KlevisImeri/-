@@ -9,3 +9,5 @@
 # --- Git internals ---
 !.gitignore
 !.gitattributes
+!.bashrc.d
+!.bashrc.d/*
