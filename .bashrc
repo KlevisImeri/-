@@ -33,7 +33,7 @@ done
 export EDITOR=nvim
 export VISUAL=nvim
 PROMPT_COMMAND='PS1_CMD1=$(__git_ps1 "(%s)")'
-PS1='\[\e[91m\]\u\[\e[93m\]@\[\e[95m\]\A\[\e[0m\]\[\e[96m\]\w\[\e[93m\]${PS1_CMD1}\[\e[97m\]\\$ \[\e[0m\]'
+PS1='\[\e[91m\]\u\[\e[93m\]@\[\e[95m\]\h\[\e[0m\]\[\e[96m\]\w\[\e[93m\]${PS1_CMD1}\[\e[97m\]\\$ \[\e[0m\]'
 
 export ORACLE_BASE=/usr/lib/oracle
 export ORACLE_HOME=$ORACLE_BASE/23/client64
