@@ -2,15 +2,17 @@ nvim() {
   if [[ -n "$NVIM" ]]; then
     local files=() dirs=()
     for arg in "$@"; do
-      if [[ -d "$arg" ]]; then
-        dirs+=("$arg")
+      local resolved
+      resolved=$(realpath -m "$arg")
+      if [[ -d "$resolved" ]]; then
+        dirs+=("$resolved")
       else
-        files+=("$arg")
+        files+=("$resolved")
       fi
     done
     if [[ ${#dirs[@]} -gt 0 ]]; then
       for d in "${dirs[@]}"; do
-        command nvim --server "$NVIM" --remote-send ":cd ${d}<CR>"
+        command nvim --server "$NVIM" --remote-send ":tcd ${d}<CR>"
       done
     fi
     if [[ ${#files[@]} -gt 0 ]]; then
