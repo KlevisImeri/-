@@ -31,12 +31,12 @@ sudo dnf install -y \
 pip install pulsemixer
 
 repos=(
+  "git@github.com:KlevisImeri/ssh.git .ssh"
   "git@github.com:KlevisImeri/alacritty.git .config/alacritty"
   "git@github.com:KlevisImeri/i3.git .config/i3"
   "git@github.com:KlevisImeri/nvim.git .config/nvim"
   "git@github.com:KlevisImeri/i3status.git .config/i3status"
   "git@github.com:KlevisImeri/opencode.git .config/opencode"
-  "git@github.com:KlevisImeri/ssh.git .ssh"
 )
 
 for entry in "${repos[@]}"; do
