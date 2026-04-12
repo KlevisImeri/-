@@ -29,7 +29,7 @@ for d in /opt/*/bin; do
 done
 
 
-. ~/.git-prompt.sh   
+. ~/.git-prompt.sh
 export EDITOR=nvim
 export VISUAL=nvim
 PROMPT_COMMAND='PS1_CMD1=$(__git_ps1 "(%s)")'

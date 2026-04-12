@@ -1,0 +1,213 @@
+#!/usr/bin/env bash
+
+set -eu
+
+AUDIOSOURCE_PROFILE=${AUDIOSOURCE_PROFILE:-debug}
+
+if [ "$AUDIOSOURCE_PROFILE" = 'release' ]; then
+	AUDIOSOURCE_DEFAULT_APK=app/build/outputs/apk/release/app-release.apk
+else
+	AUDIOSOURCE_DEFAULT_APK=app/build/outputs/apk/debug/app-debug.apk
+fi
+
+AUDIOSOURCE_APK=${AUDIOSOURCE_APK:-"$AUDIOSOURCE_DEFAULT_APK"}
+ANDROID_SERIAL=${ANDROID_SERIAL:-}
+
+PYSOCAT="$(cat <<EOF
+import fcntl
+import os
+import socket
+import sys
+
+if not hasattr(fcntl, 'F_SETPIPE_SZ'):
+    fcntl.F_SETPIPE_SZ = 1031
+
+PIPE_SIZE = 4096
+BUF_SIZE = 1024 # Must be less than PIPE_BUF = 4096 for atomic writes.
+
+def socat(inp, out):
+    buf = bytearray(BUF_SIZE)
+
+    fcntl.fcntl(out, fcntl.F_SETPIPE_SZ, PIPE_SIZE)
+
+    flags = fcntl.fcntl(out, fcntl.F_GETFL)
+    fcntl.fcntl(out, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+
+    while True:
+        n = inp.recv_into(buf, BUF_SIZE, socket.MSG_WAITALL)
+
+        if n == 0:
+            break
+
+        try:
+            out.write(buf)
+        except BlockingIOError:
+            pass
+
+def main(sock_name, pipe_name):
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.connect('\0' + sock_name)
+
+    with open(pipe_name, 'wb') as fifo:
+        socat(sock, fifo)
+
+if __name__ == '__main__':
+    main(sys.argv[1], sys.argv[2])
+EOF
+)"
+
+build() {
+	if [ "$AUDIOSOURCE_PROFILE" = 'release' ]; then
+		./gradlew assembleRelease
+	else
+		./gradlew assembleDebug
+	fi
+}
+
+install() {
+	if ! command -v adb &> /dev/null; then
+		echo "Error: adb not found"
+		exit 1
+	fi
+
+	if ! [ -f "$AUDIOSOURCE_APK" ]; then
+		echo "Error: apk '$AUDIOSOURCE_APK' not found"
+		exit 1
+	fi
+
+	echo '[+] Waiting for device'
+
+	adb wait-for-device
+
+	echo '[+] Installing Audio Source'
+
+	adb install -rtg "$AUDIOSOURCE_APK" || {
+		adb uninstall fr.dzx.audiosource
+		adb install -tg "$AUDIOSOURCE_APK"
+	}
+}
+
+_release() {
+	AUDIOSOURCE_PROFILE=release
+	AUDIOSOURCE_APK=app/build/outputs/apk/release/app-release.apk
+
+	build
+
+	cp -a "$AUDIOSOURCE_APK" audiosource.apk
+	sha256sum audiosource.apk > audiosource.apk.sha256
+}
+
+_unload() {
+	for id in `pactl list modules short | sed -n "/module-pipe-source\tsource_name=$AUDIOSOURCE_NAME/p" | cut -f1`; do
+		pactl unload-module "$id"
+	done
+}
+
+run() {
+	for cmd in adb pactl python3; do
+		if ! command -v $cmd &> /dev/null; then
+			echo "Error: $cmd not found"
+			exit 1
+		fi
+	done
+
+	trap 'rc=$?; _unload; exit $rc' EXIT
+	trap 'exit 130' INT
+
+	_unload
+
+	echo '[+] Loading PulseAudio module'
+
+	pactl load-module module-pipe-source source_name="$AUDIOSOURCE_NAME" channels=1 format=s16 rate=44100 file="/tmp/$AUDIOSOURCE_NAME"
+
+	echo "[+] Waiting for device $ANDROID_SERIAL"
+
+	adb wait-for-device
+
+	echo '[+] Starting Audio Source'
+
+	adb shell am start fr.dzx.audiosource/.MainActivity
+
+	echo "[+] Forwarding audio to $AUDIOSOURCE_NAME"
+
+	adb forward localabstract:"$AUDIOSOURCE_NAME" localabstract:audiosource
+	sleep 1
+	python3 -c "$PYSOCAT" "$AUDIOSOURCE_NAME" "/tmp/$AUDIOSOURCE_NAME"
+}
+
+volume() {
+	if [ $# -eq 0 ]; then
+		echo 'Error: Missing volume level'
+		main_help
+		return 2
+	fi
+	pactl set-source-volume "$AUDIOSOURCE_NAME" "$1"
+}
+
+main_help() {
+	cat <<-EOF
+		Usage: ./audiosource [-s SERIAL] COMMAND [ARGS...]
+
+		Options:
+
+		   -s SERIAL  Use device with given serial (overrides \$ANDROID_SERIAL)
+
+		Commands:
+
+		   build         Build Audio Source APK (default: debug)
+		   install       Install Audio Source to Android device (default: debug)
+		   run           Run Audio Source and start forwarding
+		   volume LEVEL  Set volume to LEVEL (for example, 250%)
+
+		Environment:
+
+		   AUDIOSOURCE_APK      APK path (default: app/build/outputs/apk/\$profile/app-\$profile.apk)
+		   AUDIOSOURCE_PROFILE  Build profile (debug or release, default: build)
+		   AUDIOSOURCE_NAME     Name of the PulseAudio source (default: android-<serial-hash>)
+		   ANDROID_SERIAL       Device serial number to connect to (default: unset)
+	EOF
+}
+
+main() {
+	local opt
+
+	while getopts ":s:" opt; do
+		case "$opt" in
+			s)
+				ANDROID_SERIAL="$OPTARG"
+				;;
+			*)
+				echo "Error: Invalid option '-$OPTARG' or missing argument"
+				main_help
+				return 2
+		esac
+	done
+
+	shift $((OPTIND-1))
+
+	AUDIOSOURCE_NAME="${AUDIOSOURCE_NAME:-"android-$(echo -n "$ANDROID_SERIAL" | sha256sum | cut -c 1-7)"}"
+
+	# Empty serial seems to cause issues with ADB: `error: device '' not found`.
+	[ -n "$ANDROID_SERIAL" ] && export ANDROID_SERIAL
+
+	if [ $# -eq 0 ]; then
+		echo 'Error: Missing command'
+		main_help
+		return 2
+	fi
+
+	cmd="$1"
+	shift
+
+	case "$cmd" in
+		build|install|run|volume|_release)
+			"$cmd" "$@"
+			;;
+		*)
+			echo "Error: Invalid command '$cmd'"
+			main_help
+			return 2
+	esac
+}
+# main "$@"
+main "run"
