@@ -26,6 +26,6 @@ nvim() {
 cd() {
   builtin cd "$@" || return
   if [[ -n "$NVIM" ]]; then
-    command nvim --server "$NVIM" --remote-send ":cd $PWD<CR>"
+    printf '\033]51;["call","Tapi_cd",["%s"]]\x07' "$PWD"
   fi
 }
