@@ -26,6 +26,6 @@ nvim() {
 cd() {
   builtin cd "$@" || return
   if [[ -n "$NVIM" ]]; then
-    printf '\033]51;["call","Tapi_cd",["%s"]]\x07' "$PWD"
+    printf '\033]7;file://%s\033\\' "$PWD"
   fi
 }
