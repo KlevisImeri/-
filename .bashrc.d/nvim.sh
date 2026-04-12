@@ -22,3 +22,10 @@ nvim() {
     command nvim "$@"
   fi
 }
+
+cd() {
+  builtin cd "$@" || return
+  if [[ -n "$NVIM" ]]; then
+    command nvim --server "$NVIM" --remote-send ":cd $PWD<CR>"
+  fi
+}
