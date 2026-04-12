@@ -1,4 +1,15 @@
 #!/bin/bash
+
+DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+cp -rf "$DOTFILES_DIR/.git" ~/.git
+
+for item in "$DOTFILES_DIR"/* "$DOTFILES_DIR"/.*; do
+    basename=$(basename "$item")
+    [[ "$basename" == "." || "$basename" == ".." || "$basename" == ".git" ]] && continue
+    cp -rf "$item" ~/"$basename"
+done
+
 sudo dnf update
 
 sudo dnf install -y \
