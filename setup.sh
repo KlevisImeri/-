@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -14,6 +15,7 @@ sudo dnf update
 
 sudo dnf install -y \
     git \
+    git-crypt \
     chromium-browser \
     firefox \
     pip \
@@ -30,8 +32,26 @@ sudo dnf install -y \
 
 pip install pulsemixer
 
+echo "Generate a GitHub PAT: https://github.com/settings/tokens/new"
+while [[ -z "$GH_PAT" ]]; do
+  read -rsp "GitHub PAT (cannot be empty): " GH_PAT
+  echo
+done
+
+if [ -d "$HOME/.ssh" ]; then
+  echo "Removing $HOME/.ssh..."
+  rm -rf "$HOME/.ssh"
+fi
+echo "Cloning $HOME/.ssh..."
+git clone "https://${GH_PAT}@github.com/KlevisImeri/ssh.git" "$HOME/.ssh"
+git -C "$HOME/.ssh" remote set-url origin git@github.com:KlevisImeri/ssh.git
+
+"$HOME/.ssh/setup.sh"
+
+eval "$(ssh-agent)" && ssh-add "$HOME/.ssh/id_ed25519" 2>/dev/null
+unset GH_PAT
+
 repos=(
-  "git@github.com:KlevisImeri/ssh.git $HOME/.ssh"
   "git@github.com:KlevisImeri/alacritty.git $HOME/.config/alacritty"
   "git@github.com:KlevisImeri/i3.git $HOME/.config/i3"
   "git@github.com:KlevisImeri/nvim.git $HOME/.config/nvim"
