@@ -30,6 +30,34 @@ sudo dnf install -y \
     ripgrep \
     jq
 
+echo "Starting Docker installation."
+sudo dnf remove -y docker \
+    docker-client \
+    docker-client-latest \
+    docker-common \
+    docker-latest \
+    docker-latest-logrotate \
+    docker-logrotate \
+    docker-selinux \
+    docker-engine-selinux \
+    docker-engine || true
+
+sudo dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
+
+sudo dnf install -y \
+  docker-ce \
+  docker-ce-cli \
+  containerd.io \
+  docker-buildx-plugin \
+  docker-compose-plugin
+sudo systemctl enable --now docker
+sudo docker run hello-world
+echo "Docker installation complete!"
+echo "To not use sudo for docker add:
+sudo usermod -aG docker $USER
+sudo reboot
+"
+
 pip install pulsemixer
 
 echo "Generate a GitHub PAT: https://github.com/settings/tokens/new"
@@ -73,3 +101,6 @@ git clone "${url[0]}" "$path"
 done
 
 source ~/.bashrc
+
+
+
