@@ -5,4 +5,4 @@ alias xclip="xclip -selection c"
 alias op="opencode --port"
 alias rg="rg --no-ignore"
 alias audiosource='~/audiosource.sh'
-alias ai="aichat"
+alias ai="aichat -m gemini:gemini-3-flash-preview"
