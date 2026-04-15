@@ -4,5 +4,6 @@ alias pactl-hdmi='pactl set-card-profile alsa_card.pci-0000_00_1f.3 output:hdmi-
 alias xclip="xclip -selection c"
 alias op="opencode --port"
 alias rg="rg --no-ignore"
+alias fd="fd -u"
 alias audiosource='~/audiosource.sh'
 alias ai="aichat -m gemini:gemini-3-flash-preview"
