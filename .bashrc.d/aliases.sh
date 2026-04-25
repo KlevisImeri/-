@@ -6,5 +6,3 @@ alias op="opencode"
 alias rg="rg --no-ignore"
 alias fd="fd -u"
 alias audiosource='~/audiosource.sh'
-# alias ai="aichat -m gemini:gemini-3-flash-preview -c"
-alias ai="aichat -m ollama:gemma4 -c"
