@@ -86,6 +86,7 @@ repos=(
   "git@github.com:KlevisImeri/i3status.git $HOME/.config/i3status"
   "git@github.com:KlevisImeri/opencode.git $HOME/.config/opencode"
   "git@github.com:KlevisImeri/.aichat.git $HOME/.config/aichat"
+  "git@github.com:KlevisImeri/pi.git $HOME/.config/pi"
 )
 
 for entry in "${repos[@]}"; do
