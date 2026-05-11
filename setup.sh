@@ -40,9 +40,11 @@ sudo dnf remove -y docker \
     docker-logrotate \
     docker-selinux \
     docker-engine-selinux \
-    docker-engine || true
+    docker-engine \
+    moby-engine \
+    docker-cli
 
-sudo dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
+sudo dnf config-manager addrepo --overwrite --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
 
 sudo dnf install -y \
   docker-ce \
@@ -85,7 +87,6 @@ repos=(
   "git@github.com:KlevisImeri/nvim.git $HOME/.config/nvim"
   "git@github.com:KlevisImeri/i3status.git $HOME/.config/i3status"
   "git@github.com:KlevisImeri/opencode.git $HOME/.config/opencode"
-  "git@github.com:KlevisImeri/.aichat.git $HOME/.config/aichat"
   "git@github.com:KlevisImeri/pi.git $HOME/.config/pi"
 )
 
