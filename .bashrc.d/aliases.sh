@@ -6,4 +6,4 @@ alias op="opencode"
 alias rg="rg --no-ignore"
 alias fd="fd -u"
 alias audiosource='~/audiosource.sh'
-alias pi='pi -t read,bash,grep,find,ls'
+alias pi='pi -t read,grep,find,ls'
