@@ -8,3 +8,4 @@ alias fd="fd -u"
 alias audiosource='~/audiosource.sh'
 alias pi='pi -t read,grep,find,ls'
 alias git-pull-force='git fetch origin && git reset --hard origin/$(git rev-parse --abbrev-ref HEAD)'
+alias nap="systemctl suspend"
