@@ -61,3 +61,4 @@ export PI_CODING_AGENT_DIR="~/.config/pi"
 # This section can be safely removed at any time if needed.
 test -r '/home/klevis/.opam/opam-init/init.sh' && . '/home/klevis/.opam/opam-init/init.sh' > /dev/null 2> /dev/null || true
 # END opam configuration
+. "$HOME/.elan/env"
